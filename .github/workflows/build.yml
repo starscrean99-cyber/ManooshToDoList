@@ -9,10 +9,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: ManooshToDoList
-
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v4
@@ -24,13 +20,20 @@ jobs:
         distribution: 'temurin'
 
     - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
+      run: |
+        find . -name "gradlew" -exec chmod +x {} +
 
     - name: Build Debug APK
-      run: ./gradlew assembleDebug
+      run: |
+        if [ -f "./gradlew" ]; then
+          ./gradlew assembleDebug
+        else
+          find . -maxdepth 2 -name "gradlew" -execdir ./gradlew assembleDebug \;
+        fi
 
     - name: Upload APK Artifact
       uses: actions/upload-artifact@v4
       with:
         name: ManooshToDoList-Debug-APK
-        path: ManooshToDoList/app/build/outputs/apk/debug/app-debug.apk
+        path: |
+          **/app/build/outputs/apk/debug/app-debug.apk
